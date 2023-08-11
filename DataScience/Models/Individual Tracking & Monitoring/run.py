@@ -79,7 +79,12 @@ class RealTimeTracking:
         model = IsolationForest().fit(coords)
         anomalies = [point for i, point in enumerate(trajectory) if model.predict([coords[i]]) == -1]
         return anomalies
-
+    
+    def get_time_feature(self,cluster):
+        # Define logic to extract relevant time features
+        # Example:      
+        return cluster[0]['timestamp'].hour
+    
     def predict_traffic(self, gps_data):
         features = []
         target = []
