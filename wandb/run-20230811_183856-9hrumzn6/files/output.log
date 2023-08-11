@@ -207,3 +207,8 @@ WARNING:absl:Found untraced functions such as lstm_cell_1_layer_call_fn, lstm_ce
 wandb: Adding directory to artifact (.\models)... Done. 0.0s
 18/18 [==============================] - 6946s 387s/step - loss: 1.0976 - accuracy: 0.6111 - val_loss: 1.7248 - val_accuracy: 0.2083 - lr: 2.0000e-04
 Epoch 10/30
+ 1/18 [>.............................] - ETA: 2:21:56 - loss: 0.9253 - accuracy: 0.5625
+ 2/18 [==>...........................] - ETA: 2:13:41 - loss: 1.0561 - accuracy: 0.5938
+ 3/18 [====>.........................] - ETA: 2:05:20 - loss: 1.0012 - accuracy: 0.6458
+ 4/18 [=====>........................] - ETA: 1:55:56 - loss: 1.0358 - accuracy: 0.6406
+ 5/18 [=======>......................] - ETA: 1:50:34 - loss: 1.0541 - accuracy: 0.6500
