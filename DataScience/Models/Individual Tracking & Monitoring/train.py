@@ -7,7 +7,7 @@ from sklearn.externals import joblib
 from datetime import datetime
 
 class PredictiveTracking:
-    def __init__(self, gps_data, model_path="model.pkl", seq_length=10, pred_length=5):
+    def __init__(self, gps_data, model_path="model.pkl", seq_length=20, pred_length=5):
         self.gps_data = gps_data
         self.model_path = model_path
         self.seq_length = seq_length

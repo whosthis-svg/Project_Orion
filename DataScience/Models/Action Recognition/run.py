@@ -5,6 +5,8 @@ from tensorflow.keras.models import  load_model
 from madgwickahrs import MadgwickAHRS
 import numpy as np
 
+#Warning: This code is not tested and is only meant to be a guide
+
 class FeatureExtractor:
     def __init__(self):
         self.madgwick_filter = MadgwickAHRS(sampleperiod=1/60)
