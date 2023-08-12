@@ -154,9 +154,9 @@ class TrainingClass:
     def train_model(self):
         self.model = Sequential()
         self.model.add(Masking(mask_value=0., input_shape=(self.X_train.shape[1], self.X_train.shape[2])))
-        self.model.add(Bidirectional(LSTM(24, return_sequences=True)))  
+        self.model.add(Bidirectional(LSTM(120, return_sequences=True)))  
         self.model.add(Dropout(0.2))
-        self.model.add(Bidirectional(LSTM(24, return_sequences=True)))  
+        self.model.add(Bidirectional(LSTM(60, return_sequences=True)))  
         self.model.add(Dropout(0.2))
         self.model.add(Bidirectional(LSTM(12, return_sequences=False)))  
         self.model.add(Dense(12, activation='tanh'))
@@ -169,7 +169,7 @@ class TrainingClass:
         
        
        
-        optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.001)
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.01)
         self.model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
         early_stopping = EarlyStopping(monitor='val_loss', patience=15)
