@@ -40,11 +40,11 @@ class PredictiveTracking:
     def train_model(self):
         # Train the model on available data (LSTM)
         self.model = Sequential()
-        self.model.add(Bidirectional(LSTM(50, return_sequences=True), input_shape=(self.seq_length, 5))) # 5 features
+        self.model.add(Bidirectional(LSTM(20, return_sequences=True), input_shape=(self.seq_length, 5))) # 5 features
         self.model.add(Dropout(0.2))
-        self.model.add(Bidirectional(LSTM(50, return_sequences=True)))
+        self.model.add(Bidirectional(LSTM(20, return_sequences=True)))
         self.model.add(Dropout(0.2))
-        self.model.add(Bidirectional(LSTM(50, return_sequences=True)))
+        self.model.add(Bidirectional(LSTM(20, return_sequences=True)))
         self.model.add(Dropout(0.2))
         self.model.add(Dense(2)) # 2 output features (lat and long)
         self.model.compile(optimizer='adam', loss='mse')
