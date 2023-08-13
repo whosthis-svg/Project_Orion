@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +15,7 @@ from folium.plugins import HeatMap
 
 def process_data(gps_data):
     # Using DBSCAN to cluster the data
-    dbscan = DBSCAN(eps=0.01, min_samples=5)
+    dbscan = DBSCAN(eps=0.1, min_samples=7)
     clusters = dbscan.fit_predict(gps_data)
     
     df = pd.DataFrame({'Latitude': gps_data[:, 0], 'Longitude': gps_data[:, 1], 'Cluster': clusters})
@@ -44,21 +50,35 @@ std_dev = 0.03
 # Number of points per cluster
 points_per_cluster = 100
 
-# Generate points for each cluster
+# Generate points for cluster
 for center in cluster_centers:
     lat_center, lon_center = center
     latitudes += list(np.random.normal(lat_center, std_dev, points_per_cluster))
     longitudes += list(np.random.normal(lon_center, std_dev, points_per_cluster))
 
+# reading latitudes and longitudes from the VirtualCrowd_Test_Cleaned.csv
+df = pd.read_csv('C:/Users/Inca/Documents/Australia/Deakin/2023/T2 2023/SIT764/Task2/datasets/VirtualCrowd_Test_Cleaned.csv')
+
+time = df[df["Time"].isin(['11:30:49'])].reset_index(drop=True)
+latitudes_list = time[" Longitude Degrees"].tolist()
+longitudes_list = time[" Latitude Degrees"].tolist()
+
+# remove "Time" to facilitate the processing
+df.drop("Time", axis=1)
+
+latitudes = latitudes_list
+longitudes = longitudes_list
+
 # Processing the data and plotting
 gps_data = np.array([latitudes, longitudes]).T
 process_data(gps_data)
+
 # Creating a DataFrame with the latitude and longitude data
 heatmap_data = pd.DataFrame({'Latitude': latitudes, 'Longitude': longitudes})
 
 # Plotting the heatmap using Seaborn's kdeplot function
 plt.figure(figsize=(10, 10))
-sns.kdeplot(x='Longitude', y='Latitude', data=heatmap_data, cmap='Reds', shade=True)
+sns.kdeplot(x='Longitude', y='Latitude', data=heatmap_data, cmap='Reds', fill=True)
 plt.title('Heatmap of Points')
 plt.xlabel('Longitude')
 plt.ylabel('Latitude')
@@ -79,3 +99,10 @@ HeatMap(heatmap_data).add_to(base_map)
 
 # Save the map to an HTML file (optional)
 base_map.save('heatmap.html')
+
+
+# In[ ]:
+
+
+
+
