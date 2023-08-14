@@ -1,68 +1,65 @@
 import pandas as pd
 import numpy as np
+import json
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential
-from keras.layers import Bidirectional, LSTM, Dense, Dropout
-from sklearn.externals import joblib
 from datetime import datetime
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Bidirectional, Dropout, Dense, Reshape, Masking
+from tensorflow import keras    
 
 class PredictiveTracking:
-    def __init__(self, gps_data, model_path="model.pkl", seq_length=20, pred_length=5):
-        self.gps_data = gps_data
-        self.model_path = model_path
+    def __init__(self, user_id, preprocessed_data, mode, seq_length=20, pred_length=10):
+        self.user_id = user_id
+        self.model_path = f"IndiMods/model_{user_id}.h5"
         self.seq_length = seq_length
         self.pred_length = pred_length
-        self.load_model()
-        self.load_data()
+        if preprocessed_data is not None:
+         self.load_data(preprocessed_data, mode)
+
+    def load_data(self, preprocessed_data, mode='train'):
+        if mode == 'train':
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(*preprocessed_data, test_size=0.2, random_state=42)
+            print(self.X_train.shape, self.X_test.shape, self.y_train.shape, self.y_test.shape)
+        elif mode == 'test':
+            self.X_test, self.y_test = preprocessed_data
+            print(self.X_test.shape, self.y_test.shape)
+        else: 
+            print("Invalid mode. Use 'train' or 'test'.")
 
     def load_model(self):
         try:
-            self.model, self.last_trained_date = joblib.load(self.model_path)
+            keras.models.load_model(self.model_path)
+            with open(f"{str(self.model_path).replace('h5','json')}", "r") as read_file:
+                data = json.load(read_file)
+            self.last_trained_date = datetime.strptime(data['last_trained_date'], "%d-%m-%Y %H:%M:%S.%f")
         except:
+            print("No model found")
             self.model = None
             self.last_trained_date = None
-            
-    def create_sequences(self, data):
-        X, y = [], []
-        for i in range(len(data) - self.seq_length - self.pred_length + 1):
-            seq_in = data[i:i + self.seq_length, :]
-            seq_out = data[i + self.seq_length:i + self.seq_length + self.pred_length, 1:3] # lat and long columns
-            X.append(seq_in)
-            y.append(seq_out)
-        return np.array(X), np.array(y)
-
-    def load_data(self):
-        # Load data from gps_data (in the form of a CSV file [time, lat, long, speed, direction])
-        data = pd.read_csv(self.gps_data).values
-        X, y = self.create_sequences(data)
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     def train_model(self):
-        # Train the model on available data (LSTM)
-        self.model = Sequential()
-        self.model.add(Bidirectional(LSTM(20, return_sequences=True), input_shape=(self.seq_length, 5))) # 5 features
-        self.model.add(Dropout(0.2))
-        self.model.add(Bidirectional(LSTM(20, return_sequences=True)))
-        self.model.add(Dropout(0.2))
-        self.model.add(Bidirectional(LSTM(20, return_sequences=True)))
-        self.model.add(Dropout(0.2))
-        self.model.add(Dense(2)) # 2 output features (lat and long)
-        self.model.compile(optimizer='adam', loss='mse')
-        self.model.fit(self.X_train, self.y_train, epochs=10)
-        self.last_trained_date = datetime.now()
-
-    def evaluate_model(self, new_model):
-        # Compare new_model to current self.model
-        current_loss = self.model.evaluate(self.X_test, self.y_test)
-        new_loss = new_model.evaluate(self.X_test, self.y_test)
-        if new_loss < current_loss:
-            self.model = new_model
-
-    def predict_traffic(self):
-        # Use the model to predict traffic (coordinates)
-        return self.model.predict(self.X_test)
+        try:
+            self.model = Sequential()
+            self.model.add(Masking(mask_value=0., input_shape=(self.seq_length, 27))) # Masking layer
+            self.model.add(Bidirectional(LSTM(128, return_sequences=True), input_shape=(self.seq_length, 17))) # 18 features
+            self.model.add(Dropout(0.2))
+            self.model.add(Bidirectional(LSTM(128, return_sequences=True)))
+            self.model.add(Dropout(0.2))
+            self.model.add(Bidirectional(LSTM(128, return_sequences=False)))
+            self.model.add(Dropout(0.2))
+            self.model.add(Dense(self.pred_length * 2))
+            self.model.add(Reshape((self.pred_length, 2))) # Reshape to (pred_length, 2)
+            self.model.compile(optimizer='adam', metrics='accuracy', loss='mse')
+            self.model.fit(self.X_train, self.y_train, epochs=5)
+            self.last_trained_date = datetime.now()
+        except Exception as e:
+            print(e)
 
     def save_model(self):
-        # Save model and last_trained_date to a file
-        joblib.dump((self.model, self.last_trained_date), self.model_path)
-                  
+        self.model.save(self.model_path)
+        print("Model saved")
+        data= self.last_trained_date.strftime("%d/%m/%Y %H:%M:%S")
+        with open(f"{str(self.model_path).replace('h5','json')}", "w") as write_file:
+                json.dump(data, write_file)
+                print("Model logged")
+        
